@@ -1,0 +1,60 @@
+@import url('https://fonts.cdnfonts.com/css/br-sonoma');
+@import "tailwindcss";
+@plugin "daisyui"{
+  themes: light --default;
+}
+.input-style {
+  @apply border border-gray-300 rounded px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+*{
+  scroll-behavior: smooth;
+}
+:root {
+  font-family: 'BR Sonoma', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+
+body {
+  
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+::view-transition-old(root){
+  animation: fade-out 300ms ease-in forwards;
+}
+::view-transition-new(root){
+  animation: fade-in 500ms ease-in forwards;
+}
+
+@keyframes fade-in {
+  from{
+    opacity: 0;
+  }
+  to{
+    opacity: 1;
+  }
+}
+@keyframes fade-out{
+  from{
+    opacity: 1;
+  }
+  to{
+    opacity: 0;
+  }
+}
+
+/* index.css */
+
+
