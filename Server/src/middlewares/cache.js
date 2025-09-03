@@ -13,7 +13,7 @@ export const cacheMiddleware =
   async (req, res, next) => {
     //create unique key based on our userId, api routes and query parameters
     const userId = req.user.id || "anonymous";
-    const cacheKey = `user_${userId}${key}${req.orignalUrl}_${JSON.stringify(
+    const cacheKey = `user_${userId}_${key}_${req.orignalUrl}_${JSON.stringify(
       req.query
     )}`;
     try {

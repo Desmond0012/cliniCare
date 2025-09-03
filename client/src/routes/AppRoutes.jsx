@@ -1,10 +1,10 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { lazy, Suspense } from "react";
-import LazyLoader from "@/components/LazyLoader";
-import Users from "@/pages/user/Users";
-import { PublicRoutes, PrivateRoutes } from "./ProtectedRoutes";
+import { LazyLoader } from "@/components/LazyLoader";
+import { PublicRoutes, PrivateRoutes, VerifyRoutes } from "./ProtectedRoutes";
 import { useAuth } from "@/contextStore/Index";
-import Drawer from "@/components/Drawer";
+import HealthRecord from "@/pages/setting/healthRocord/HealthRecord";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 //render pages
 const RootLayout = lazy(() => import("@/layouts/RootLayout"));
@@ -16,6 +16,7 @@ const Register = lazy(() => import("@/pages/register/Register"));
 const SignUp = lazy(() => import("@/pages/signup/SignUp"));
 const PatientOnboard = lazy(() =>
   import("@/pages/onboard-patient/PatientOnboard")
+
 );
 const VerifyAccount = lazy(() => import("@/pages/verifyAccount/VerifyAccount"));
 const ResetPassword = lazy(() => import("@/pages/passwordReset/ResetPassword"));
@@ -31,7 +32,12 @@ const Doctors = lazy(() => import("@/pages/doctor/Doctors"));
 const Patients = lazy(() => import("@/pages/patient/Patients"));
 const InPatients = lazy(() => import("@/pages/inpatient/InPatients"));
 const Settings = lazy(() => import("@/pages/setting/Settings"));
-const User = lazy(() => import("@/pages/user/Users"));
+const Users = lazy(() => import("@/pages/user/Users"))
+const Account = lazy(() => import("@/pages/setting/account/account"));
+const Password = lazy(() => import("@/pages/setting/password/Password"));
+const PatientAppointment = lazy(() => import("@/pages/appointment/PatientAppointment"));
+const PatientPayments = lazy(() => import("@/pages/payment/PatientPayments"))
+
 
 export default function AppRoutes() {
   const { accessToken, user } = useAuth();
@@ -39,11 +45,12 @@ export default function AppRoutes() {
     {
       element: (
         <Suspense fallback={<LazyLoader />}>
-          <PublicRoutes accessToken={accessToken} >
+          <PublicRoutes accessToken={accessToken}>
             <RootLayout />
           </PublicRoutes>
         </Suspense>
       ),
+      errorElement: <ErrorBoundary/>,
       children: [
         {
           index: true,
@@ -63,19 +70,20 @@ export default function AppRoutes() {
         },
         {
           path: "register",
-          element: <Register />
+          element: <Register />,
         },
       ],
     },
     {
-      path:"account",
+      path: "/account",
       element: (
         <Suspense fallback={<LazyLoader />}>
-          <PublicRoutes accessToken={accessToken} >   
+          <PublicRoutes accessToken={accessToken}>
             <AuthLayout />
           </PublicRoutes>
         </Suspense>
       ),
+       errorElement: <ErrorBoundary/>,
       children: [
         {
           path: "signin",
@@ -114,11 +122,12 @@ export default function AppRoutes() {
     {
       element: (
         <Suspense fallback={<LazyLoader />}>
-          <PrivateRoutes accessToken={accessToken} user={user}>
+          <VerifyRoutes accessToken={accessToken} user={user}>
             <OnboardingLayout />
-          </PrivateRoutes>
+          </VerifyRoutes>
         </Suspense>
       ),
+       errorElement: <ErrorBoundary/>,
       children: [
         {
           path: "verify-account",
@@ -147,6 +156,7 @@ export default function AppRoutes() {
           </PrivateRoutes>
         </Suspense>
       ),
+       errorElement: <ErrorBoundary/>,
       children: [
         {
           index: true,
@@ -165,6 +175,14 @@ export default function AppRoutes() {
           ),
         },
         {
+          path: "patient-appointments",
+          element: (
+            <Suspense fallback={<LazyLoader />}>
+              <PatientAppointment />
+            </Suspense>
+          ),
+        },
+        {
           path: "rooms",
           element: (
             <Suspense fallback={<LazyLoader />}>
@@ -177,6 +195,14 @@ export default function AppRoutes() {
           element: (
             <Suspense fallback={<LazyLoader />}>
               <Payments />
+            </Suspense>
+          ),
+        },
+        {
+          path: "patient-payments",
+          element: (
+            <Suspense fallback={<LazyLoader />}>
+              <PatientPayments />
             </Suspense>
           ),
         },
@@ -211,6 +237,32 @@ export default function AppRoutes() {
               <Settings />
             </Suspense>
           ),
+          children:[
+            {
+              path: "account",
+               element: (
+            <Suspense fallback={<LazyLoader />}>
+              <Account />
+            </Suspense>
+          ),
+            },
+            {
+              path: "password",
+               element: (
+            <Suspense fallback={<LazyLoader />}>
+              <Password />
+            </Suspense>
+          ),
+            },
+             {
+              path: "health",
+               element: (
+            <Suspense fallback={<LazyLoader />}>
+              <HealthRecord />
+            </Suspense>
+          ),
+            },
+          ],
         },
         {
           path: "users",
@@ -220,14 +272,8 @@ export default function AppRoutes() {
             </Suspense>
           ),
         },
-        {
-          path: "drawer",
-          element: (
-            <Suspense fallback={<LazyLoader />}>
-              <Drawer />
-            </Suspense>
-          ),
-        },
+           
+        
       ],
     },
   ];

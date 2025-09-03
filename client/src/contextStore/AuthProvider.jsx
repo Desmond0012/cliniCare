@@ -1,30 +1,31 @@
 import { AuthContext } from "./Index";
 import { useState } from "react";
+import { useEffect } from "react";
 import { getAuthenticatedUser, refreshAccessToken } from "@/api/auth";
 import { useQuery } from "@tanstack/react-query";
-import LazyLoader from "@/components/LazyLoader";
+import { LazyLoader } from "@/components/LazyLoader";
 
 export default function Authprovider({ children }) {
   //set and save accessToken in state memeory
   const [accessToken, setAccessToken] = useState(null);
   const [user, setUser] = useState(null); //defaault value of logged in user
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  // const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   //query to refresh accessToken on app start
   useQuery({
     queryKey: ["refresh_token"],
     queryFn: async () => {
-      setIsAuthenticating(true);
+      // setIsAuthenticating(true);
       const res = await refreshAccessToken();
       // make api call to get new accessToken, then update it in our accessToken state using the setAccessToken setter function
       if (res.status === 200) {
         const newAccessToken = res.data?.data?.accessToken;
         setAccessToken(newAccessToken);
-        isAuthenticating(false);
+        // isAuthenticating(false);
         return res;
       } else {
         setAccessToken(null); // if res. status is not 200, remove the accessToken and force a logout
-        isAuthenticating(false);
+        // isAuthenticating(false);
         return null;
       }
     },
@@ -33,28 +34,44 @@ export default function Authprovider({ children }) {
   });
 
   //fetch auth user
-  useQuery({
-    queryKey: ["auth_user"], //cache key for our api call
-    queryFn: async () => {
-      setIsAuthenticating(true);
-      const res = await getAuthenticatedUser(accessToken);
-      if (res.status === 200) {
-        setUser(res.data?.data); //hold the value from our res in user state
-        setIsAuthenticating(false);
-        return res;
-      }
-      setIsAuthenticating(false);
-      return null;
-    },
-    onError: (error) => {
+  // useQuery({
+  //   queryKey: ["auth_user"], //cache key for our api call
+  //   queryFn: async () => {
+  //     setIsAuthenticating(true);
+  //     const res = await getAuthenticatedUser(accessToken);
+  //     if (res.status === 200) {
+  //       setUser(res.data?.data); //hold the value from our res in user state
+  //       setIsAuthenticating(false);
+  //       return res;
+  //     }
+  //     setIsAuthenticating(false);
+  //     return null;
+  //   },
+  //   onError: (error) => {
+  //     console.error("Error fetching user", error);
+  //   },
+  //   enabled: !!accessToken,
+  // });
+
+  const { isPending, data } = useQuery({
+    queryKey: ["auth_user", accessToken],
+    queryFn: () => getAuthenticatedUser(accessToken),
+    onError: async (error) => {
       console.error("Error fetching user", error);
     },
+    enabled: !!accessToken,
   });
-  console.log(user);
-  console.log(accessToken);
 
-  if (isAuthenticating){
-    return <LazyLoader/>;
+  useEffect(() => {
+    if (data?.status === 200) {
+      setUser(data?.data?.data);
+    }
+  }, [data?.data?.data, data?.status]);
+  // console.log(user);
+  // console.log(accessToken);
+
+  if (isPending && accessToken) {
+    return <LazyLoader />;
   }
 
   return (

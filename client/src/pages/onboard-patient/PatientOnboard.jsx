@@ -5,6 +5,11 @@ import { useForm } from "react-hook-form";
 import { bloodGroup, formatDate } from "@/utils/Constants";
 import { useAuth } from "@/contextStore/Index";
 import { useMemo, useState, useEffect } from "react";
+import { Mutation, useMutation, useQueryClient } from "@tanstack/react-query";
+import { registerPatient } from "@/api/patient";
+import { toast } from "sonner";
+import { useNavigate } from "react-router";
+import ErrorAlert from "@/components/ErrorAlert";
 
 export default function PatientOnboard() {
   useMetaArgs({
@@ -12,6 +17,15 @@ export default function PatientOnboard() {
     description: "Complete your patient profile",
     keywords: "Health, Register, Clinic, Hospital",
   });
+  const { user, accessToken } = useAuth();
+  // console.log(user);
+
+  const [currentStep, setCurrentStep] = useState(
+    user?.isCompletedOnboard ? 3 : 1
+  );
+
+  const [error, setError] = useState(null);
+  const [field, setField] = useState(false);
   const {
     register,
     handleSubmit,
@@ -21,11 +35,8 @@ export default function PatientOnboard() {
   } = useForm({
     resolver: zodResolver(validatePatientSchema),
   });
-  const { user } = useAuth();
-
-  const [currentStep, setCurrentStep] = useState(1);
-  const [field, setField] = useState(false);
-
+  const QueryClient = useQueryClient();
+  const navigate = useNavigate();
   const gender = ["male", "female", "other"];
   const bloodGroupOptions = Object.entries(bloodGroup).map(([key, value]) => ({
     name: key,
@@ -56,15 +67,36 @@ export default function PatientOnboard() {
   );
   // invoking our watch function so it can track the values of the required fields
   const formValues = watch();
+
   useEffect(() => {
     const currentRequiredFields =
       currentStep === 1 ? requiredFields1 : requiredFields2;
     const hasEmptyFields = currentRequiredFields.some(
       (field) => !formValues[field] || formValues[field] === ""
-    ); //checking to see if it has empty fields - checking to see if any of the required fields are either undefined, null, or an empty string - this helps us determine if the user has left any mandatory fields blank before proceeding
-    const hasErrors = currentRequiredFields.some((field) => errors[field]); //checking to see if it has errors based on the validation we set
+    );
+    //checking to see if it has empty fields - checking to see if any of the required fields are either undefined, null, or an empty string - this helps us determine if the user has left any mandatory fields blank before proceeding
+    const hasErrors = currentRequiredFields.some((field) => errors[field]);
+    //checking to see if it has errors based on the validation we set
     setField(hasEmptyFields || hasErrors); //setting the field state
-  }, [currentStep, errors, formValues, requiredFields1, requiredFields2]); //passed in the dependencies array to track changes
+  }, [currentStep, errors, formValues, requiredFields1, requiredFields2]);
+  //passed in the dependencies array to track changes
+
+  const mutation = useMutation({
+    mutationFn: registerPatient,
+    onSuccess: (Response) => {
+      if (Response.status === 201) {
+        toast.success(Response?.data?.message);
+        //clear old user data
+        QueryClient.invalidateQueries({ queryKey: ["auth_user"] });
+      }
+    },
+    onError: (error) => {
+      import.meta.env.DEV && console.log(error);
+      setError(
+        error?.Response?.data?.message || "Error registering your details"
+      );
+    },
+  });
 
   // this function handles the step change, it checks if the current step is 1, if it is, it increments the step to 2, otherwise it decrements the step to 1
   const handleStep = () => {
@@ -75,8 +107,9 @@ export default function PatientOnboard() {
     }
   };
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (formData) => {
+    // console.log(formData);
+    mutation.mutate({ formData, accessToken });
   };
 
   return (
@@ -84,8 +117,12 @@ export default function PatientOnboard() {
       <h1 className="font-bold text-xl md:text-3xl">Patients Onboard</h1>
       <div className=" bg-white border-base-300 rounded-3xl border p-4 w-full max-w-[600px] flex flex-col justify-center gap-2 shadow-lg">
         <p className="text-center md:pb-5 ">
-          Hello <b>{user.fullname}</b>, Please complete your patient profile
+          Hello <b>{user?.fullname}</b>,{" "}
+          {user?.isCompletedOnboard
+            ? "Onboarding completed"
+            : "please complete yout patient profile"}{" "}
         </p>
+        {error && <ErrorAlert error={error} />}
         {/* this was going to be a progress bar for the stepper it was gotten from daisy ui */}
         <ul className="steps">
           <li
@@ -310,25 +347,49 @@ export default function PatientOnboard() {
               </div>
             </>
           )}
+
+          {currentStep === 3 && (
+            <div className="md:col-span-12 p-4 text-center">
+              <img
+                src="/Success.svg"
+                alt="success"
+                className="w-full h-[200px]"
+              />
+              <h1 className="text-2xl font-bold">Congratulations!</h1>
+              <p className="text-gray-600">
+                "Your account has been verified successfully."
+              </p>
+              <button
+                className="btn my-4 bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
+                size="lg"
+                onClick={() => navigate("/dashboard", { replace: true })}
+              >
+                Continue to dashboard
+              </button>
+            </div>
+          )}
+
           {/* button */}
           <div className="col-span-12 flex mt-5 md:mt-0 md:justify-end">
-            <button
-              className="btn bg-blue-500 w-full md:w-40 hover:bg-blue-600 text-white rounded-lg"
-              type="submit"
-              disabled={isSubmitting || field}
-             
-            >
-              {isSubmitting ? "Saving..." : "Save"}
-            </button>
             {currentStep === 1 && (
-              <button onClick={handleStep} className="btn bg-zinc-800 font-bold text-white w-[140px] cursor-pointer" disabled={field}>
+              <button
+                onClick={handleStep}
+                className="btn bg-zinc-800 font-bold text-white w-[140px] cursor-pointer"
+                disabled={field}
+              >
                 Next
               </button>
-            )}  
+            )}
             {currentStep === 2 && (
               <div className=" flex justify-end gap-4">
                 <button onClick={handleStep}>Previous</button>
-                <button>Save</button>
+                <button
+                  className="btn bg-blue-500 w-full md:w-40 hover:bg-blue-600 text-white rounded-lg"
+                  type="submit"
+                  disabled={mutation.isPending || field}
+                >
+                  {mutation.isPending ? "Saving..." : "Save"}
+                </button>
               </div>
             )}
           </div>

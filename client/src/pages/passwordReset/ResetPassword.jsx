@@ -31,7 +31,7 @@ export default function ResetPassword() {
   //look for value on our url base
   const email = searchParams.get("email");
   const token = searchParams.get("token");
-  console.log({ email });
+  // console.log({ email });
 
   const mutation = useMutation({
     mutationFn: resetPassword,
@@ -40,7 +40,7 @@ export default function ResetPassword() {
       navigate("/account/signin");
     },
     onError: (error) => {
-      console.log(error);
+     import.meta.env.DEV && console.log(error);
       setError(error?.Response?.data?.message);
     },
   });

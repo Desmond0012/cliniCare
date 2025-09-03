@@ -1,5 +1,5 @@
 import { RiEyeLine, RiEyeOffLine, RiUser4Fill } from "@remixicon/react";
-import { Link } from "react-router";
+import { Link , useNavigate} from "react-router";
 import { useState } from "react";
 import { validateSignUpSchema } from "@/utils/dataSchema";
 import { useForm } from "react-hook-form";
@@ -26,22 +26,26 @@ export default function SignUp() {
   } = useForm({
     
     resolver: zodResolver(validateSignUpSchema),
+   
   });
-
+ const navigate = useNavigate()
 
   //const queryClient = useQueryClient();// Initialize the query client for React Query
   //mutation are for create, update or delete operations
   //useMutation is used to create a mutation for the registerUser function
-  const {setAccessToken} = useAuth(); // Access the setAccessToken function from Auth context
+  const {setAccessToken,user} = useAuth(); // Access the setAccessToken function from Auth context
   const mutation = useMutation({
     mutationFn: registerUser,
     onSuccess: (Response) => {// what you want to do if api call is successful
       // console.log(Response);
       toast.success(Response?.data?.message || "Registration successful"); // Show success message
       setAccessToken(Response?.data?.data?.accessToken); // Set the access token in Auth context
+      if (!user?.isVerified) {
+        navigate("/verify-account")
+      }
     },
     onError: (error) => {// what you want to do if api call fails
-      console.log(error);
+     import.meta.env.DEV && console.log(error);
       setError(error?.response?.data?.message || "Registration failed"); // Show error message
       
     },

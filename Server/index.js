@@ -10,7 +10,13 @@ import {
 
 //api routes
 import userRoutes from "./src/routes/userRoutes.js";
-import patientRoutes from "./src/routes/patientRoutes.js"
+import patientRoutes from "./src/routes/patientRoutes.js";
+import roomRoutes from "./src/routes/roomRoutes.js";
+import doctorRoutes from "./src/routes/doctorRoutes.js"
+import appointmentRoutes from "./src/routes/appoinmentRoutes.js"
+import paymentRoutes from "./src/routes/paymentRoutes.js"
+import inpatientRoutes from "./src/routes/paymentRoutes.js"
+import dashboardRoutes from "./src/routes/dashboardRoutes.js"
 
 //initialize express app
 const app = express();
@@ -32,14 +38,14 @@ app.use(
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev")); //log http requests to terminal in dev mode
 }
-app.use(cookieParser()) // initialize cookie in our app
+app.use(cookieParser()); // initialize cookie in our app
 app.use(express.json({ limit: "25mb" })); //parses request gotten from client side and sends back the response no greater than 25mb.
 app.use(express.urlencoded({ extended: true, limit: "25mb" })); // useful for getting the large form submission in encoded formats such as base64 url strings where we set the content type of the request body
 app.disable("x-powered-by"); //diable the tech stack used when sending response to the client
 
 //get request time
 app.use((req, res, next) => {
-  req.requstTime = new Date().toISOString();
+  req.requestTime = new Date().toISOString();
   next();
 });
 
@@ -49,13 +55,19 @@ app.get("/", (req, res) => {
     status: "Success",
     message: "Server is running",
     environment: process.env.NODE_ENV,
-    timeStamp: req.requstTime,
+    timeStamp: req.requestTime,
   });
 });
 
 //assemble our api routes
 app.use("/api/v1/auth", userRoutes);
-app.use("/api/v1/patients",patientRoutes);
+app.use("/api/v1/patients", patientRoutes);
+app.use("/api/v1/rooms", roomRoutes);
+app.use("/api/v1/doctors",doctorRoutes);
+app.use("/api/v1/appointments", appointmentRoutes);
+app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/inpatients", inpatientRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 
 //handler routes errors
 app.use(catchNotFound);
@@ -89,13 +101,13 @@ const connectDb = async () => {
       console.log("ℹ️ Mongodb disconnected")
     );
     //handle gracefull shutdown
-    const gracefullShutdown = async () => {
+    const gracefulShutdown = async () => {
       await mongoose.connection.close();
       console.log("ℹ️ Mongodb connection closed through app termination");
       process.exit(0);
     };
-    process.on("SIGINT", gracefullShutdown); //ctrl + c
-    process.on("SIGTERN", gracefullShutdown); // a signal to terminate a process
+    process.on("SIGINT", gracefulShutdown); //ctrl + c
+    process.on("SIGTERM", gracefulShutdown); // a signal to terminate a process
     return conn;
   } catch (error) {
     console.error("❌ Mongodb connection failed", error.message);
@@ -151,7 +163,7 @@ const startServer = async () => {
     process.on("SIGINT", shutdown);
     process.on("SIGTERM", shutdown);
   } catch (error) {
-    console.error(`❌ Faioled to start server: ${error.message}`);
+    console.error(`❌ Failed to start server: ${error.message}`);
     process.exit(1);
   }
 };

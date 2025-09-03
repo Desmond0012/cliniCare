@@ -1,14 +1,18 @@
 import { RiEyeLine, RiEyeOffLine, RiUser4Fill } from "@remixicon/react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import { validateSignInSchema } from "@/utils/dataSchema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import useMetaArgs from "@/hooks/useMeta";
-
 import ErrorAlert from "@/components/ErrorAlert";
+import { useAuth } from "@/contextStore/Index";
+import { useMutation } from "@tanstack/react-query";
+import { loginUser } from "@/api/auth";
+import { toast } from "sonner";
 
 export default function Login() {
+  const [error, setError] = useState()
   useMetaArgs({
     title: "Login-Clincare",
     description: "Welcome to your clinicare user",
@@ -23,12 +27,34 @@ export default function Login() {
     resolver: zodResolver(validateSignInSchema),
   });
 
+  const {setAccessToken, user} = useAuth()
+  const navigate = useNavigate();
+      const mutation = useMutation({
+        mutationFn: loginUser,
+    onSuccess: (response)=> { //what you want to do if the api call is a success
+      // console.log(response); //remove the response when you are done using it
+      toast.success(response?.data?.message || "Login successful") 
+      setAccessToken(response?.data?.data?.accessToken)
+      if (!user?.isVerified) {
+        navigate("/verify-account")
+      }
+      //save accessToken
+    },
+    onError: (error) => {
+     import.meta.env.DEV && console.log(error);
+      setError(error?.response?.data?.message || "Login failed")
+      
+      
+    },
+    
+      })
+    
+       const onSubmit = async (data) => {
+mutation.mutate(data); //submitting our form to our mutation function to help us make the api call using our registerUser api
+  }
+
   const togglePassword = () => {
     setIsVisible((prev) => !prev);
-  };
-
-  const onSubmit = (data) => {
-    console.log(data);
   };
 
   return (

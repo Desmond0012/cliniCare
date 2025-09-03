@@ -10,7 +10,7 @@ export default function DashboardLayout() {
     <div className="flex min-h-screen bg-slate-100">
       {/* Sidebar for Desktop */}
       <aside className="hidden md:flex w-64 bg-gray-100 border-r">
-        <Sidebar />
+        <Sidebar user={user} />
       </aside>
 
       <div className="flex flex-col flex-1">
