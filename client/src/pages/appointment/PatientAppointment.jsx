@@ -76,7 +76,7 @@ export default function PatientAppointments() {
             <ErrorAlert error={error?.response?.data?.message} />
           ) : (
             <>
-              {patientsAppointment?.length > 0 ? (
+              
                 <>
                   <Suspense fallback={<SkeletonTable />}>
                     <Table patientsAppointment={patientsAppointment} />
@@ -89,11 +89,7 @@ export default function PatientAppointments() {
                     // limit={pageLimit}
                   />
                 </>
-              ) : (
-                <p className="mt-6  font-semibold text-center">
-                  No appointments found
-                </p>
-              )}
+            
             </>
           )}
         </>

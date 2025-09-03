@@ -64,7 +64,7 @@ export default function Patient() {
         <ErrorAlert error={error?.response?.data?.message} />
       ) : (
         <>
-          {patients?.length > 0 ? (
+         
             <>
               {" "}
               <Suspense fallback={<SkeletonTable />}>
@@ -77,9 +77,7 @@ export default function Patient() {
                 currentPage={currentPage}
               />
             </>
-          ) : (
-            <p className="mt-6 font-semibold text-center">No patients found</p>
-          )}
+        
         </>
       )}
       </>}

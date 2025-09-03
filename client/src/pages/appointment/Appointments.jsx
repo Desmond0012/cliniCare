@@ -70,7 +70,7 @@ export default function Appointments() {
             <ErrorAlert error={error?.response?.data?.message} />
           ) : (
             <>
-              {appointment?.length > 0 ? (
+              
                 <>
                   <Suspense fallback={<SkeletonTable />}>
                     <Table appointment={appointment} />
@@ -82,11 +82,7 @@ export default function Appointments() {
                     currentPage={currentPage}
                   />
                 </>
-              ) : (
-                <p className="mt-6  font-semibold text-center">
-                  No appointments found
-                </p>
-              )}
+             
             </>
           )}
         </>
