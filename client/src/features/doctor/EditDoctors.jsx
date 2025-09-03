@@ -1,88 +1,91 @@
-import { useAuth } from "@/contextStore/Index";
+import Modal from "@/components/Modal";
 import { useEffect, useState } from "react";
+import { RiCloseLine, RiEditLine } from "@remixicon/react";
+import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { validateDoctorAvailabilitySchema } from "@/utils/dataSchema";
-import Modal from "@/components/Modal";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ErrorAlert from "@/components/ErrorAlert";
-import { RiCloseLine, RiEditFill } from "@remixicon/react";
-import { updateDoctor } from "@/api/doctor";
+import { validateDoctorAvailabilitySchema } from "@/utils/dataSchema";
+import { updateDoctors } from "@/api/doctor";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contextStore/Index";
 
-export default function Edit({ doctors }) {
+export default function EditDoctors({ doctor }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [msg, setMsg] = useState(null);
-  const [error, setError] = useState(null);
-  const queryClient = useQueryClient();
-  const { accessToken } = useAuth();
-  const availability = ["available", "unavailable", "on leave", "sick"];
 
+  const [error, setError] = useState(null);
+  const [success, ShowSuccess] = useState(false);
+  const [msg, setMsg] = useState("");
+  const {accessToken} = useAuth();
+
+
+  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
     setValue,
-    reset,
     formState: { errors, isSubmitting },
+    reset,
   } = useForm({
     resolver: zodResolver(validateDoctorAvailabilitySchema),
-    //   defaultValues: {
-    //   roomNumber: rooms?.roomNumber || "",
-    //   roomType: rooms?.roomType || "",
-    //   roomPrice: rooms?.roomPrice || "",
-    //   roomStatus: rooms?.roomStatus || "",
-    //   roomDescription: rooms?.roomDescription || "",
-    //   roomCapacity: rooms?.roomCapacity || "",
-    // },
   });
 
-  useEffect(() => {
-    if (doctors) {
-      setValue("availability", doctors?.availability);
-    }
-  }, [setValue, doctors]);
+ 
 
-  const mutation = useMutation({
-    mutationFn: updateDoctor,
+const mutation = useMutation({
+    mutationFn: updateDoctors,
     onSuccess: (response) => {
+      // console.log(response);
+      
       if (response.status === 200) {
         setMsg(response?.data?.message);
-        setShowSuccess(true);
+        ShowSuccess(true);
+        reset();
       }
     },
     onError: (error) => {
       console.error(error);
-      setError(error?.response?.data?.message || "Error updating status");
+      setError(error?.response?.data?.message || "Error updating doctor");
     },
   });
-  const resetModal = async () => {
-    await queryClient.invalidateQueries({ queryKey: ["getAllDoctors"] });
-    setIsOpen(false);
-    reset();
-    setShowSuccess(false);
-    setError(null);
+
+
+
+  useEffect(() => {
+    if (doctor) {
+      setValue("availability", doctor?.availability || "");
+    }
+  }, [doctor, setValue]);
+
+  const toggleDrawer = () => {
+    setIsOpen(!isOpen);
   };
 
-  const onSubmit = (doctor) => {
-    mutation.mutate({ doctorId: doctors?._id, doctor, accessToken });
+  const availability = ["available", "unavailable", "on leave", "sick"];
+
+  const onSubmit = async (formData) => {
+    mutation.mutate({ doctorId: doctor._id, formData, accessToken });
+  };
+  const handleClose = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["getAllDoctors"] });
+    setIsOpen(false);
+    ShowSuccess(false);
   };
 
   return (
-    <div>
-      <button className="cursor-pointer" onClick={() => setIsOpen(true)}>
-        <RiEditFill className="text-blue-500" />
-      </button>
+    <>
+      <RiEditLine className="text-blue-500" onClick={() => setIsOpen(true)} />
+
       <Modal
-        id="doctorModal"
+        id="doctorModall"
         isOpen={isOpen}
-        classname="bg-white p-4 rounded-xl shadow w-[90%] max-w-[600px] mx-auto"
+        classname="bg-white p-4 rounded-xl shadow w-[90%] md:max-w-[600px]   max-w-[400px] mx-auto"
       >
         {error && <ErrorAlert error={error} />}
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="font-bold text-xl">Edit Doctor Status</h1>
-          <RiCloseLine onClick={() => setIsOpen(false)} />
-        </div>
-        {showSuccess ? (
+        <h1 className="text-2xl font-bold  text-start mb-4 ">
+          Edit Doctor Status
+        </h1>
+        {success ? (
           <>
             <div className="p-4 text-center">
               <img
@@ -95,55 +98,320 @@ export default function Edit({ doctors }) {
               <button
                 className="btn my-4 bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
                 size="lg"
-                onClick={resetModal}
+                onClick={handleClose}
               >
-                Continue to doctor
+                Continue to Doctors
               </button>
             </div>
           </>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {/* availability */}
-            <div className="col-span-6 w-full">
-              <legend className="fieldset-legend text-zinc-800 font-bold p-2">
-                Availability
-              </legend>
-              <select
-                className="select w-full"
-                {...register("availability")}
-              >
-                <option value="">Select Availability</option>
-                {availability?.map((item, index) => (
-                  <option key={index} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-              {errors.availability?.message && (
-                <span className="text-xs text-red-500">
-                  {errors.availability?.message}
-                </span>
-              )}
+          <>
+            <div className="flex flex-col  gap-2 w-full">
+              <form className="space-y-6   " onSubmit={handleSubmit(onSubmit)}>
+                {error && <ErrorAlert error={error} />}
+                <div className="grid grid-cols-12 gap-4  ">
+                  <div className=" col-span-12  ">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Role
+                    </label>
+                    <select
+                      defaultValue={""}
+                      className="select capitalize w-full "
+                      name="availability"
+                      {...register("availability")}
+                      disabled={isSubmitting}
+                      id=" availability"
+                    >
+                      <option value="">Select Status</option>
+                      {availability?.map((option, index) => (
+                        <option key={index} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.availability?.message && (
+                      <span className="text-xs text-red-500">
+                        {errors?.availability?.message}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  className="btn btn-sm btn-circle btn-ghost absolute right-2 top-4 "
+                  type="button"
+                  onClick={toggleDrawer}
+                >
+                  <RiCloseLine size={24} />
+                </button>
+                <div className=" flex justify-end gap-4  ">
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="mt-4 px-4 py-2 border border-gray-300 hover:bg-gray-300 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white hover:text-white font-bold   rounded-md"
+                    disabled={mutation.isPending || isSubmitting}
+                  >
+                    {mutation.isPending || isSubmitting
+                      ? "Updating..."
+                      : "Update"}
+                  </button>
+                </div>
+              </form>
             </div>
-            <div className="flex justify-end gap-4 mt-3">
-              <button
-                type="button"
-                className="btn btn-md border border-gray-300"
-                onClick={() => setIsOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-md bg-blue-500 text-white font-bold border border-gray-300 p-2 rounded-md cursor-pointer"
-                disabled={mutation.isPending || isSubmitting}
-              >
-                {mutation.isPending || isSubmitting ? "Updating..." : "Update"}
-              </button>
-            </div>
-          </form>
+          </>
         )}
       </Modal>
-    </div>
+    </>
   );
 }
+
+
+// import Modal from "@/components/Modal";
+// import { useEffect, useState } from "react";
+// import { RiCloseLine, RiEditLine } from "@remixicon/react";
+// import React from "react";
+// import { zodResolver } from "@hookform/resolvers/zod";
+// import { useForm } from "react-hook-form";
+// import ErrorAlert from "@/components/ErrorAlert";
+// import { validateDoctorAvailabilitySchema } from "@/utils/dataSchema";
+// import { updateDoctors } from "@/api/doctor";
+// import { useMutation, useQueryClient } from "@tanstack/react-query";
+// import { useAuth } from "@/contextStore/Index";
+
+// export default function EditDoctors({ doctor }) {
+//   const [isOpen, setIsOpen] = useState(false);
+// const [showDoctor, setShowDoctor] = useState(false);
+//   const [error, setError] = useState(null);
+//   const [success, ShowSuccess] = useState(false);
+//   const [msg, setMsg] = useState("");
+//   const {accessToken} = useAuth();
+
+
+//   const Availability = ["available", "unavailable", "on leave", "sick"];
+//   const Specialization = [
+//     "Cardiology",
+//     "Dermatology",
+//     "Gastroenterology",
+//     "Neurology",
+//     "Orthopedics",
+//     "Pediatrics",
+//     "Psychiatry",
+//     "Urology",
+//   ];
+
+//   const queryClient = useQueryClient();
+//   const {
+//     register,
+//     handleSubmit,
+//     setValue,
+//     watch,
+//     formState: { errors, isSubmitting },
+//     reset,
+//   } = useForm({
+//     resolver: zodResolver(validateDoctorAvailabilitySchema),
+//   });
+
+//  const fieldWatch = watch("role");
+//    useEffect(() => {
+//      if (fieldWatch === "doctor") {
+//        setShowDoctor(true);
+//      } else {
+//        setShowDoctor(false);
+//      }
+//    }, [fieldWatch]);
+ 
+
+// const mutation = useMutation({
+//     mutationFn: updateDoctors,
+//     onSuccess: (response) => {
+//       console.log(response);
+      
+//       if (response.status === 200) {
+//         setMsg(response?.data?.message);
+//         ShowSuccess(true);
+//         reset();
+//       }
+//     },
+//     onError: (error) => {
+//       console.error(error);
+//       setError(error?.response?.data?.message || "Error updating doctor");
+//     },
+//   });
+
+
+
+//   useEffect(() => {
+//     if (doctor) {
+//       setValue("availability", doctor?.availability || "");
+//     }
+//   }, [doctor, setValue]);
+
+//   const toggleDrawer = () => {
+//     setIsOpen(!isOpen);
+//   };
+
+//   const availability = ["available", "unavailable", "on leave", "sick"];
+
+//   const onSubmit = async (formData) => {
+//     mutation.mutate({ doctorId: doctor._id, formData, accessToken });
+//   };
+//   const handleClose = async () => {
+//     await queryClient.invalidateQueries({ queryKey: ["getAllDoctors"] });
+//     setIsOpen(false);
+//     ShowSuccess(false);
+//   };
+
+//   return (
+//     <>
+//       <RiEditLine className="text-blue-500" onClick={() => setIsOpen(true)} />
+
+//       <Modal
+//         id="updateUserModal"
+//         isOpen={isOpen}
+//         classname="bg-white p-4 rounded-xl shadow w-[90%] md:max-w-[600px]   max-w-[400px] mx-auto"
+//       >
+//         {error && <ErrorAlert error={error} />}
+//         <h1 className="text-2xl font-bold  text-start mb-4 ">
+//           Edit Doctor Status
+//         </h1>
+//         {success ? (
+//           <>
+//             <div className="p-4 text-center">
+//               <img
+//                 src="/Success.svg"
+//                 alt="success"
+//                 className="w-full h-[200px]"
+//               />
+//               <h1 className="text-2xl font-bold">Congratulations!</h1>
+//               <p className="text-gray-600">{msg}</p>
+//               <button
+//                 className="btn my-4 bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
+//                 size="lg"
+//                 onClick={handleClose}
+//               >
+//                 Continue to Doctors
+//               </button>
+//             </div>
+//           </>
+//         ) : (
+//           <>
+//             <div className="flex flex-col  gap-2 w-full">
+//               <form className="space-y-6   " onSubmit={handleSubmit(onSubmit)}>
+//                 {error && <ErrorAlert error={error} />}
+//                 <div className="grid grid-cols-12 gap-4  ">
+//                   <div className=" col-span-12  ">
+//                     <label className="block text-sm font-medium text-gray-700">
+//                       Role
+//                     </label>
+//                     <select
+//                       defaultValue={""}
+//                       className="select capitalize w-full "
+//                       name="availability"
+//                       {...register("availability")}
+//                       disabled={isSubmitting}
+//                       id=" availability"
+//                     >
+//                       <option value="">Select Status</option>
+//                       {availability?.map((option, index) => (
+//                         <option key={index} value={option}>
+//                           {option}
+//                         </option>
+//                       ))}
+//                     </select>
+                    
+//             {showDoctor && (
+//               <>
+//                 <div className="col-span-12 md:col-span-6">
+//                   <label className="block text-sm font-medium text-gray-700">
+//                   Availability
+//                   </label>
+//                   <select
+//                     defaultValue=""
+//                     className="select capitalize w-full"
+//                     {...register("availability")}
+//                     disabled={isSubmitting}
+//                   >
+//                     <option value="">Select Specialization</option>
+//                     {availability?.map((option, index) => (
+//                       <option key={index} value={option}>
+//                         {option}
+//                       </option>
+//                     ))}
+//                   </select>
+//                   {errors.availability?.message && (
+//                     <span className="text-xs text-red-500">
+//                       {errors.availability?.message}
+//                     </span>
+//                   )}
+//                 </div>
+
+//                 <div className="col-span-12 md:col-span-6">
+//                   <label className="block text-sm font-medium text-gray-700">
+//                     Availability
+//                   </label>
+//                   <select
+//                     defaultValue=""
+//                     className="select capitalize w-full"
+//                     {...register("availability")}
+//                     disabled={isSubmitting}
+//                   >
+//                     <option value="">Select Availability</option>
+//                     {availability?.map((option, index) => (
+//                       <option key={index} value={option}>
+//                         {option}
+//                       </option>
+//                     ))}
+//                   </select>
+//                   {errors.availability?.message && (
+//                     <span className="text-xs text-red-500">
+//                       {errors.availability?.message}
+//                     </span>
+//                   )}
+//                 </div>
+//               </>
+//             )}
+//                     {errors.availability?.message && (
+//                       <span className="text-xs text-red-500">
+//                         {errors?.availability?.message}
+//                       </span>
+//                     )}
+//                   </div>
+//                 </div>
+//                 <button
+//                   className="btn btn-sm btn-circle btn-ghost absolute right-2 top-4 "
+//                   type="button"
+//                   onClick={toggleDrawer}
+//                 >
+//                   <RiCloseLine size={24} />
+//                 </button>
+//                 <div className=" flex justify-end gap-4  ">
+//                   <button
+//                     type="button"
+//                     onClick={() => setIsOpen(false)}
+//                     className="mt-4 px-4 py-2 border border-gray-300 hover:bg-gray-300 rounded-lg"
+//                   >
+//                     Cancel
+//                   </button>
+//                   <button
+//                     type="submit"
+//                     className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white hover:text-white font-bold   rounded-md"
+//                     disabled={mutation.isPending || isSubmitting}
+//                   >
+//                     {mutation.isPending || isSubmitting
+//                       ? "Updating..."
+//                       : "Update"}
+//                   </button>
+//                 </div>
+//               </form>
+//             </div>
+//           </>
+//         )}
+//       </Modal>
+//     </>
+//   );
+// }
