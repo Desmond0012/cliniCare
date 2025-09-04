@@ -20,8 +20,6 @@ export default function Sidebar({ user }) {
       roleBasedPathPermissions.patient.allowedSubpaths) ||
     (userRole === "nurse" && roleBasedPathPermissions.nurse.allowedSubpaths) ||
     (userRole === "staff" && roleBasedPathPermissions.staff.allowedSubpaths);
-
-    console.log(isAuthorized);
     
     // console.log(userRole);
     useEffect(() => {

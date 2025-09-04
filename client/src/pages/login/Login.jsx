@@ -22,31 +22,29 @@ export default function LogIn() {
     resolver: zodResolver(validateSignInSchema),
   });
 
-  const {setAccessToken, user} = useAuth()
+  const { setAccessToken, user } = useAuth();
   const navigate = useNavigate();
-      const mutation = useMutation({
-        mutationFn: loginUser,
-    onSuccess: (response)=> { //what you want to do if the api call is a success
+  const mutation = useMutation({
+    mutationFn: loginUser,
+    onSuccess: (response) => {
+      //what you want to do if the api call is a success
       // console.log(response); //remove the response when you are done using it
-      toast.success(response?.data?.message || "Login successful") 
-      setAccessToken(response?.data?.data?.accessToken)
-      if (!user?.isVerified) {
-        navigate("/verify-account")
+      toast.success(response?.data?.message || "Login successful");
+      setAccessToken(response?.data?.data?.accessToken);
+      if (user && !user?.isVerified) {
+        navigate("/verify-account");
       }
       //save accessToken
     },
     onError: (error) => {
       import.meta.env.DEV && console.log(error);
-      setError(error?.response?.data?.message || "Login failed")
-      
-      
+      setError(error?.response?.data?.message || "Login failed");
     },
-    
-      })
-    
-       const onSubmit = async (data) => {
-mutation.mutate(data); //submitting our form to our mutation function to help us make the api call using our registerUser api
-  }
+  });
+
+  const onSubmit = async (data) => {
+    mutation.mutate(data); //submitting our form to our mutation function to help us make the api call using our registerUser api
+  };
 
   const togglePassword = () => {
     setIsVisible((prev) => !prev);
@@ -62,7 +60,9 @@ mutation.mutate(data); //submitting our form to our mutation function to help us
           </div>
           <div className="mt-4 text-center">
             <h1 className="text-xl font-bold">Welcome Back</h1>
-            <p className="text-gray-500 text-sm pr-4">Glad to see you again. Log in to your account.</p>
+            <p className="text-gray-500 text-sm pr-4">
+              Glad to see you again. Log in to your account.
+            </p>
           </div>
         </div>
 
@@ -101,7 +101,7 @@ mutation.mutate(data); //submitting our form to our mutation function to help us
                 className="absolute bottom-3 right-2 text-xs font-bold cursor-pointer"
                 onClick={togglePassword}
               >
-                {isVisible ? "Hide" : "Show" }
+                {isVisible ? "Hide" : "Show"}
               </button>
             </fieldset>
             {errors.password?.message && (
@@ -143,7 +143,6 @@ mutation.mutate(data); //submitting our form to our mutation function to help us
   );
 }
 
-
 // import { RiEyeLine, RiEyeOffLine, RiUser4Fill } from "@remixicon/react";
 // import { Link } from "react-router";
 // import { useState } from "react";
@@ -161,7 +160,6 @@ mutation.mutate(data); //submitting our form to our mutation function to help us
 // export default function Login() {
 
 //   const navigate = useNavigate()
- 
 
 //   useMetaArgs({
 //     title: "Login-Clincare",
@@ -200,9 +198,6 @@ mutation.mutate(data); //submitting our form to our mutation function to help us
 //   const onSubmit = (data) => {
 //     mutation.mutate(data);
 //   };
-
-
-  
 
 //   return (
 //     <div className="bg-white border-base-300 rounded-2xl w-full max-w-[400px] border p-6 flex justify-center ">

@@ -46,7 +46,7 @@ export default function Drawer() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-zinc-800">
-                  Dizzy Gilepsy!
+                 Akhigbe Desmond !
                 </h2>
                 <p>Admin</p>
               </div>

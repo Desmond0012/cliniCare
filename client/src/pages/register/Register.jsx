@@ -12,7 +12,7 @@ import { loginUser } from "@/api/auth";
 import { toast } from "sonner";
 
 export default function Login() {
-  const [error, setError] = useState()
+  const [error, setError] = useState(null);
   useMetaArgs({
     title: "Login-Clincare",
     description: "Welcome to your clinicare user",
@@ -27,31 +27,29 @@ export default function Login() {
     resolver: zodResolver(validateSignInSchema),
   });
 
-  const {setAccessToken, user} = useAuth()
+  const { setAccessToken, user } = useAuth();
   const navigate = useNavigate();
-      const mutation = useMutation({
-        mutationFn: loginUser,
-    onSuccess: (response)=> { //what you want to do if the api call is a success
+  const mutation = useMutation({
+    mutationFn: loginUser,
+    onSuccess: (response) => {
+      //what you want to do if the api call is a success
       // console.log(response); //remove the response when you are done using it
-      toast.success(response?.data?.message || "Login successful") 
-      setAccessToken(response?.data?.data?.accessToken)
-      if (!user?.isVerified) {
-        navigate("/verify-account")
+      toast.success(response?.data?.message || "Login successful");
+      setAccessToken(response?.data?.data?.accessToken);
+      if (user && !user?.isVerified) {
+        navigate("/verify-account");
       }
       //save accessToken
     },
     onError: (error) => {
-     import.meta.env.DEV && console.log(error);
-      setError(error?.response?.data?.message || "Login failed")
-      
-      
+      import.meta.env.DEV && console.log(error);
+      setError(error?.response?.data?.message || "Login failed");
     },
-    
-      })
-    
-       const onSubmit = async (data) => {
-mutation.mutate(data); //submitting our form to our mutation function to help us make the api call using our registerUser api
-  }
+  });
+
+  const onSubmit = async (data) => {
+    mutation.mutate(data); //submitting our form to our mutation function to help us make the api call using our registerUser api
+  };
 
   const togglePassword = () => {
     setIsVisible((prev) => !prev);
@@ -70,6 +68,7 @@ mutation.mutate(data); //submitting our form to our mutation function to help us
               Glad to see you again. Log in to your account
             </p>
           </div>
+          {error && <ErrorAlert error={error} />}
           <div>
             <label className="label text-zinc-800 font-bold">Email</label>
             <input

@@ -19,7 +19,7 @@ export default function CreatePayment() {
   const [msg, setMsg] = useState(null);
   const [err, setError] = useState(null);
   const { accessToken } = useAuth();
-  const { queryClient } = useQueryClient();
+  const queryClient  = useQueryClient();
   const { isPending, data, error, isError } = useQuery({
     queryKey: ["getAppointmentsMeta", accessToken],
     queryFn: () => getAppointmentMeta(accessToken),
@@ -103,16 +103,18 @@ export default function CreatePayment() {
   if (isPending) {
     return <div className="my-4 text-center">Fecthing data...</div>;
   }
+const resetModal = async () => {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["getPatientPayments"] }),
+    queryClient.invalidateQueries({ queryKey: ["getAllPayment"] }), 
+  ]);
 
-  const resetModal = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ["getAllPayments", "getPatientPayments"],
-    });
-    setIsOpen(false);
-    setShowSuccess(false);
-    setError(null);
-    reset();
-  };
+  setIsOpen(false);
+  setShowSuccess(false);
+  setError(null);
+  reset();
+};
+
 
   const onSubmit = async (formData) => {
     mutation.mutate({ formData, accessToken });

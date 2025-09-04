@@ -1,23 +1,26 @@
 import { RiErrorWarningLine } from "@remixicon/react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 
 export default function ErrorAlert({ error }) {
   const navigate = useNavigate();
-  useEffect(()=>{
-    if(error === "jwt expired") {
+  const msgs = useMemo(
+    () => ["jwt expired", "Your token has expired please login again"],
+    []
+  );
+  useEffect(() => {
+    if (msgs.includes(error)) {
       navigate(0);
     }
-
-  },[error, navigate]);
+  }, [error, msgs, navigate]);
   return (
     <>
-    {error !== "jwt expired" && (
-      <div role="alert" className="alert bg-red-400 text-white">
-        <RiErrorWarningLine className="text-white" />
-        <span className="text-sm">Error! {error}</span>
-      </div>
+      {error !== "jwt expired" && (
+        <div role="alert" className="alert bg-red-400 text-white">
+          <RiErrorWarningLine className="text-white" />
+          <span className="text-sm">Error! {error}</span>
+        </div>
       )}
-</>
-);
+    </>
+  );
 }

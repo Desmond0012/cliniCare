@@ -68,7 +68,7 @@ export default function HealthRecord() {
       }
     },
     onError: (error) => {
-     import.meta.env.DEV && console.log(error);
+      import.meta.env.DEV && console.log(error);
       setError(error?.response?.data?.message || "Error updating your profile");
     },
   });
@@ -293,6 +293,7 @@ export default function HealthRecord() {
             <button
               type="button"
               className="btn btn-outline w-[140px] border border-gray-300"
+              onClick={() => navigate(-1)}
             >
               Cancel
             </button>

@@ -21,7 +21,7 @@ export default function Logout() {
       queryClient.clear();
       setIsOpen(false);
       setAccessToken(null);
-      navigate("/account/signin");
+      navigate("/account/signin", { replace: true });
     },
     onError: (error) => {
       import.meta.env.DEV && console.log(error);

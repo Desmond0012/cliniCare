@@ -16,8 +16,7 @@ export default function EditDoctors({ doctor }) {
   const [error, setError] = useState(null);
   const [success, ShowSuccess] = useState(false);
   const [msg, setMsg] = useState("");
-  const {accessToken} = useAuth();
-
+  const { accessToken } = useAuth();
 
   const queryClient = useQueryClient();
   const {
@@ -30,17 +29,16 @@ export default function EditDoctors({ doctor }) {
     resolver: zodResolver(validateDoctorAvailabilitySchema),
   });
 
- 
-
-const mutation = useMutation({
+  const mutation = useMutation({
     mutationFn: updateDoctors,
     onSuccess: (response) => {
       // console.log(response);
-      
+
       if (response.status === 200) {
         setMsg(response?.data?.message);
         ShowSuccess(true);
         reset();
+        setError(null);
       }
     },
     onError: (error) => {
@@ -48,8 +46,6 @@ const mutation = useMutation({
       setError(error?.response?.data?.message || "Error updating doctor");
     },
   });
-
-
 
   useEffect(() => {
     if (doctor) {
@@ -70,6 +66,7 @@ const mutation = useMutation({
     await queryClient.invalidateQueries({ queryKey: ["getAllDoctors"] });
     setIsOpen(false);
     ShowSuccess(false);
+    setError(null);
   };
 
   return (
@@ -81,7 +78,6 @@ const mutation = useMutation({
         isOpen={isOpen}
         classname="bg-white p-4 rounded-xl shadow w-[90%] md:max-w-[600px]   max-w-[400px] mx-auto"
       >
-        {error && <ErrorAlert error={error} />}
         <h1 className="text-2xl font-bold  text-start mb-4 ">
           Edit Doctor Status
         </h1>
@@ -170,7 +166,6 @@ const mutation = useMutation({
   );
 }
 
-
 // import Modal from "@/components/Modal";
 // import { useEffect, useState } from "react";
 // import { RiCloseLine, RiEditLine } from "@remixicon/react";
@@ -190,7 +185,6 @@ const mutation = useMutation({
 //   const [success, ShowSuccess] = useState(false);
 //   const [msg, setMsg] = useState("");
 //   const {accessToken} = useAuth();
-
 
 //   const Availability = ["available", "unavailable", "on leave", "sick"];
 //   const Specialization = [
@@ -224,13 +218,12 @@ const mutation = useMutation({
 //        setShowDoctor(false);
 //      }
 //    }, [fieldWatch]);
- 
 
 // const mutation = useMutation({
 //     mutationFn: updateDoctors,
 //     onSuccess: (response) => {
 //       console.log(response);
-      
+
 //       if (response.status === 200) {
 //         setMsg(response?.data?.message);
 //         ShowSuccess(true);
@@ -242,8 +235,6 @@ const mutation = useMutation({
 //       setError(error?.response?.data?.message || "Error updating doctor");
 //     },
 //   });
-
-
 
 //   useEffect(() => {
 //     if (doctor) {
@@ -323,7 +314,7 @@ const mutation = useMutation({
 //                         </option>
 //                       ))}
 //                     </select>
-                    
+
 //             {showDoctor && (
 //               <>
 //                 <div className="col-span-12 md:col-span-6">

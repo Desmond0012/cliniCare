@@ -297,7 +297,7 @@ export default function PatientOnboard() {
                   <input
                     type="text"
                     className="input"
-                    placeholder="Emergency contact"
+                    placeholder="Emergency contact name"
                     {...register("emergencyContact")}
                   />
                 </fieldset>
